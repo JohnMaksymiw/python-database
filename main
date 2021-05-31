@@ -1,0 +1,293 @@
+import sqlite3
+
+# Class containing all of the methods and attribures to interact with the DB
+
+class DBOperations:
+
+  #Attributes
+
+    sql_table_check = """
+    DROP TABLE IF EXISTS EmployeeUoB"""
+
+    sql_create_table_firsttime = """
+    CREATE TABLE EmployeeUoB 
+    (EmployeeID TEXT, empTitle TEXT, forename TEXT, surname TEXT, email TEXT, salary TEXT);"""
+
+    sql_insert = """
+    INSERT INTO EmployeeUoB (EmployeeID, empTitle, forename, surname, email, salary) 
+    VALUES (:EmployeeID, :empTitle, :forename,:surname, :email, :salary)"""
+
+    sql_show = """
+    SELECT * 
+    FROM EmployeeUoB"""
+
+    sql_delete = """
+    DELETE 
+    FROM EmployeeUoB 
+    WHERE EmployeeID = :EmployeeID"""
+
+    sql_search = """
+    SELECT * 
+    FROM EmployeeUoB 
+    WHERE EmployeeID = :EmployeeID"""
+
+    #Methods
+
+    # Connect to DB
+
+    def get_connection(self):
+
+        try:
+            self.conn = sqlite3.connect("DBName.db")
+            self.cur = self.conn.cursor()
+
+        except Exception as e:
+            print(e)
+
+    # Create a table
+
+    def create_table(self):
+
+        try:
+            self.get_connection()
+            self.cur.execute(self.sql_table_check)
+            self.cur.execute(self.sql_create_table_firsttime)
+            self.conn.commit()
+            print("Table created successfully")
+
+        except Exception as e:
+            print(e)
+        finally:
+            self.conn.close()
+
+    # Insert EmployeeID data
+
+    def insert_data(self):
+
+        emp = Employee()
+
+        try:
+            emp.set_employee_id(str(input("Enter Employee ID: ")))
+
+        except Exception as e:
+            print(e)
+
+        try:
+            self.get_connection()
+            dict = {
+                'EmployeeID': str(emp.get_employee_id()),
+                'empTitle': str(emp.get_employee_title()),
+                'forename': str(emp.get_forename()),
+                'surname': str(emp.get_surname()),
+                'email': str(emp.get_email()),
+                'salary': str(emp.get_salary()),
+            }
+            self.cur.execute(self.sql_insert, dict)
+            self.conn.commit()
+            print("Inserted data successfully")
+
+        except Exception as e:
+            print(e)
+        finally:
+            self.conn.close()
+
+    # Update EmployeeID data
+
+    def update_data(self):
+
+        try:
+            self.get_connection()
+
+            # INSERT query created without binding as SQLLite does not permit parameters to be used for column or table names.
+
+            ID = str(input("Enter Employee ID to update: \n"))
+            print("Enter parameter to update from the following list:\n")
+            print("EmployeeID")
+            print("forename")
+            print("surname")
+            print("email")
+            print("salary")
+            print("\n")
+
+            Column = str(input("Enter parameter: \n"))
+            Value = str(input("Enter new value: \n"))
+
+            sql_update_data = "UPDATE EmployeeUoB SET " + Column + " = '" + Value + "' WHERE EmployeeID = " + ID
+
+            self.cur.execute(sql_update_data)
+            self.conn.commit()
+            print("Inserted data successfully")
+
+        except Exception as e:
+            print(e)
+        finally:
+            self.conn.close()
+
+# Show all data
+
+    def show_all(self):
+
+        try:
+            self.get_connection()
+            self.cur.execute(self.sql_show)
+            records = self.cur.fetchall()
+            print("Total rows are:  ", len(records))
+            print("Printing each row")
+
+            for row in records:
+                print("EmployeeID: ", row[0])
+                print("forename: ", row[1])
+                print("surname: ", row[2])
+                print("email: ", row[3])
+                print("salary: ", row[4])
+                print("\n")
+
+        except Exception as e:
+            print(e)
+        finally:
+            self.conn.close()
+
+# Search using EmployeeID
+
+    def search_data(self):
+
+        try:
+            self.get_connection()
+
+            dict = {'EmployeeID':str(input("Enter EmployeeID to search for: \n"))}
+            self.cur.execute(self.sql_search,dict)
+            records = self.cur.fetchall()
+            print("Total rows are:  ", len(records))
+            print("Printing each row")
+
+            for row in records:
+                print("EmployeeID: ", row[0])
+                print("forename: ", row[1])
+                print("surname: ", row[2])
+                print("email: ", row[3])
+                print("salary: ", row[4])
+                print("\n")
+
+        except Exception as e:
+            print(e)
+        finally:
+            self.conn.close()
+
+    # Delete a row
+
+    def delete_data(self):
+
+        try:
+            self.get_connection()
+            dict = {'EmployeeID':str(input("Enter EmployeeID to delete: \n"))}
+            Answer = str(input("Are you sure? Y/N\n"))
+
+            if Answer == "Y":
+                self.cur.execute(self.sql_delete,dict)
+                print("Deleted data successfully\n")
+              
+            elif Answer == "N":
+                print("Data not deleted\n")
+            
+            elif Answer != "Y" or Answer != "N":
+               print("Please enter either Y or N\n")
+
+        except Exception as e:
+            print(e)
+        finally:
+            self.conn.close()
+
+
+# Employee class
+
+
+class Employee:
+    def __init__(self):
+        self.EmployeeID = 0
+        self.empTitle = ''
+        self.forename = ''
+        self.surname = ''
+        self.email = ''
+        self.salary = 0.0
+
+    def set_employee_id(self, EmployeeID):
+        self.EmployeeID = EmployeeID
+
+    def set_employee_title(self, empTitle):
+        self.empTitle = empTitle
+
+    def set_forename(self, forename):
+        self.forename = forename
+
+    def set_surname(self, surname):
+        self.surname = surname
+
+    def set_email(self, email):
+        self.email = email
+
+    def set_salary(self, salary):
+        self.salary = salary
+
+    def get_employee_id(self):
+        return self.EmployeeID
+
+    def get_employee_title(self):
+        return self.empTitle
+
+    def get_forename(self):
+        return self.forename
+
+    def get_surname(self):
+        return self.surname
+
+    def get_email(self):
+        return self.email
+
+    def get_salary(self):
+        return self.salary
+
+    def __str__(self):
+        return str(
+            self.employeeID
+        ) + "\n" + self.empTitle + "\n" + self.forename + "\n" + self.surname + "\n" + self.email + "\n" + str(
+            self.salary)
+
+
+# Welcoming user interface
+
+while True:
+    print("\n Menu:")
+    print("**********")
+    print(" 1. Create table EmployeeUoB")
+    print(" 2. Create EmployeeUoB ID record")
+    print(" 3. Update EmployeeUoB ID record")
+    print(" 4. Display all data in database")
+    print(" 5. Search an employee")
+    print(" 6. Update data record")
+    print(" 7. Delete data record")
+    print(" 8. Exit\n")
+
+    # Interactive interface
+
+    __choose_menu = int(input("Enter your choice: "))
+
+    db_ops = DBOperations()
+
+    if __choose_menu == 1:
+        db_ops.create_table()
+    elif __choose_menu == 2:
+        db_ops.insert_data()
+    elif __choose_menu == 3:
+        db_ops.update_data()
+    elif __choose_menu == 4:
+        db_ops.show_all()
+    elif __choose_menu == 5:
+        db_ops.search_data()
+    elif __choose_menu == 6:
+        db_ops.update_data()
+    elif __choose_menu == 7:
+        db_ops.delete_data()
+    elif __choose_menu == 8:
+        exit(0)
+    else:
+        print("Invalid Choice")
